@@ -32,6 +32,10 @@ public class UserMealsUtil {
         mealsTo.forEach(System.out::println);
         System.out.println();
 
+        mealsTo = filteredByCyclesOptional2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsTo.forEach(System.out::println);
+        System.out.println();
+
         mealsTo = filteredByStreamsOptional2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
         mealsTo.forEach(System.out::println);
         System.out.println();
@@ -67,6 +71,52 @@ public class UserMealsUtil {
                     return userMealWithExcess(userMeal, isExcess);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public static List<UserMealWithExcess> filteredByCyclesOptional2(List<UserMeal> meals,
+                                                                     LocalTime startTime,
+                                                                     LocalTime endTime,
+                                                                     int caloriesPerDay) {
+        Map<LocalDate, Integer> caloriesMap = new HashMap<>();
+        Map<LocalDate, List<UserMealWithExcess>> mealWithExcess = new HashMap<>();
+        Map<LocalDate, List<UserMealWithExcess>> mealWithoutExcess = new HashMap<>();
+        Set<UserMealWithExcess> mealNoExcessList = new HashSet<>();
+        Set<UserMealWithExcess> exclusionList = new HashSet<>();
+        List<UserMealWithExcess> resultList = new ArrayList<>();
+        meals.forEach(userMeal -> {
+            LocalDate date = getDate(userMeal);
+            caloriesMap.merge(date, userMeal.getCalories(), Integer::sum);
+            if (caloriesMap.get(date) <= caloriesPerDay) {
+                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                    mealWithExcess.merge(date,
+                            new ArrayList<>(Collections.singletonList(userMealWithExcess(userMeal, true))),
+                            (value1, value2) -> {
+                                value1.addAll(value2);
+                                return value1;
+                            });
+                    UserMealWithExcess user = userMealWithExcess(userMeal, false);
+                    mealWithoutExcess.merge(date,
+                            new ArrayList<>(Collections.singletonList(user)),
+                            (value1, value2) -> {
+                                value1.addAll(value2);
+                                return value1;
+                            });
+                    mealNoExcessList.add(user);
+                }
+            } else {
+                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                    resultList.add(userMealWithExcess(userMeal, true));
+                }
+                if (mealWithoutExcess.get(date).size() > 0) {
+                    resultList.addAll(mealWithExcess.get(date));
+                    exclusionList.addAll(mealWithoutExcess.get(date));
+                    mealWithoutExcess.remove(date);
+                }
+            }
+        });
+        mealNoExcessList.removeAll(exclusionList);
+        resultList.addAll(mealNoExcessList);
+        return resultList;
     }
 
     public static List<UserMealWithExcess> filteredByStreamsOptional2(List<UserMeal> meals,
