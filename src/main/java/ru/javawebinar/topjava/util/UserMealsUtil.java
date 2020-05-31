@@ -82,6 +82,26 @@ public class UserMealsUtil {
         return resultList;
     }
 
+    private static void recursionFilter(List<UserMeal> meals,
+                                        LocalTime startTime,
+                                        LocalTime endTime,
+                                        int caloriesPerDay,
+                                        int index,
+                                        List<UserMealWithExcess> resultList,
+                                        Map<LocalDate, Integer> caloriesMap) {
+        if (meals.size() > 0) {
+            UserMeal userMeal = meals.get(index);
+            caloriesMap.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
+            if (index < meals.size() - 1) {
+                recursionFilter(meals, startTime, endTime, caloriesPerDay, index + 1, resultList, caloriesMap);
+            }
+            boolean isExcess = caloriesMap.get(getDate(userMeal)) > caloriesPerDay;
+            if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                resultList.add(userMealWithExcess(userMeal, isExcess));
+            }
+        }
+    }
+
     public static List<UserMealWithExcess> filteredByStreamsOptional2(List<UserMeal> meals,
                                                                       LocalTime startTime,
                                                                       LocalTime endTime,
@@ -138,25 +158,5 @@ public class UserMealsUtil {
 
     private static UserMealWithExcess userMealWithExcess(UserMeal userMeal, boolean isExcess) {
         return new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), isExcess);
-    }
-
-    private static void recursionFilter(List<UserMeal> meals,
-                                        LocalTime startTime,
-                                        LocalTime endTime,
-                                        int caloriesPerDay,
-                                        int index,
-                                        List<UserMealWithExcess> resultList,
-                                        Map<LocalDate, Integer> caloriesMap) {
-        if (meals.size() > 0) {
-            UserMeal userMeal = meals.get(index);
-            caloriesMap.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
-            if (index < meals.size() - 1) {
-                recursionFilter(meals, startTime, endTime, caloriesPerDay, index + 1, resultList, caloriesMap);
-            }
-            boolean isExcess = caloriesMap.get(getDate(userMeal)) > caloriesPerDay;
-            if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                resultList.add(userMealWithExcess(userMeal, isExcess));
-            }
-        }
     }
 }
