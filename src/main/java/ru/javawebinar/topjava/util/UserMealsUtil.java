@@ -10,7 +10,6 @@ import java.time.Month;
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -77,45 +76,9 @@ public class UserMealsUtil {
                                                                      LocalTime startTime,
                                                                      LocalTime endTime,
                                                                      int caloriesPerDay) {
-        Map<LocalDate, Integer> caloriesMap = new HashMap<>();
-        Map<LocalDate, List<UserMealWithExcess>> mealWithExcess = new HashMap<>();
-        Map<LocalDate, List<UserMealWithExcess>> mealWithoutExcess = new HashMap<>();
-        Set<UserMealWithExcess> mealNoExcessList = new HashSet<>();
-        Set<UserMealWithExcess> exclusionList = new HashSet<>();
         List<UserMealWithExcess> resultList = new ArrayList<>();
-        meals.forEach(userMeal -> {
-            LocalDate date = getDate(userMeal);
-            caloriesMap.merge(date, userMeal.getCalories(), Integer::sum);
-            if (caloriesMap.get(date) <= caloriesPerDay) {
-                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    mealWithExcess.merge(date,
-                            new ArrayList<>(Collections.singletonList(userMealWithExcess(userMeal, true))),
-                            (value1, value2) -> {
-                                value1.addAll(value2);
-                                return value1;
-                            });
-                    UserMealWithExcess user = userMealWithExcess(userMeal, false);
-                    mealWithoutExcess.merge(date,
-                            new ArrayList<>(Collections.singletonList(user)),
-                            (value1, value2) -> {
-                                value1.addAll(value2);
-                                return value1;
-                            });
-                    mealNoExcessList.add(user);
-                }
-            } else {
-                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    resultList.add(userMealWithExcess(userMeal, true));
-                }
-                if (mealWithoutExcess.get(date).size() > 0) {
-                    resultList.addAll(mealWithExcess.get(date));
-                    exclusionList.addAll(mealWithoutExcess.get(date));
-                    mealWithoutExcess.remove(date);
-                }
-            }
-        });
-        mealNoExcessList.removeAll(exclusionList);
-        resultList.addAll(mealNoExcessList);
+        Map<LocalDate, Integer> caloriesMap = new HashMap<>();
+        recursionFilter(meals, startTime, endTime, caloriesPerDay, 0, resultList, caloriesMap);
         return resultList;
     }
 
@@ -127,60 +90,40 @@ public class UserMealsUtil {
                 () -> {
                     class Aggregator {
                         private final Map<LocalDate, Integer> caloriesMap = new HashMap<>();
-                        private final Map<LocalDate, List<UserMealWithExcess>> mealWithExcess = new HashMap<>();
-                        private final Map<LocalDate, List<UserMealWithExcess>> mealWithoutExcess = new HashMap<>();
+                        private final Map<LocalDate, List<UserMealWithExcess>> mealsWithExcess = new HashMap<>();
+                        private final Map<LocalDate, List<UserMealWithExcess>> mealsWithoutExcess = new HashMap<>();
                     }
                     return new Aggregator();
                 },
                 (aggregator, userMeal) -> {
                     LocalDate date = getDate(userMeal);
                     aggregator.caloriesMap.merge(date, userMeal.getCalories(), Integer::sum);
-                    if (aggregator.caloriesMap.get(date) <= caloriesPerDay) {
-                        if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                            aggregator.mealWithExcess.merge(date,
-                                    new ArrayList<>(Collections.singletonList(userMealWithExcess(userMeal, true))),
-                                    (value1, value2) -> {
-                                        value1.addAll(value2);
-                                        return value1;
-                                    });
-                            aggregator.mealWithoutExcess.merge(date,
-                                    new ArrayList<>(Collections.singletonList(userMealWithExcess(userMeal, false))),
-                                    (value1, value2) -> {
-                                        value1.addAll(value2);
-                                        return value1;
-                                    });
+                    boolean isExcess = aggregator.caloriesMap.get(date) > caloriesPerDay;
+                    if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                        aggregator.mealsWithExcess.computeIfAbsent(date, d -> new ArrayList<>())
+                                .add(userMealWithExcess(userMeal, true));
+                        if (!isExcess) {
+                            aggregator.mealsWithoutExcess.computeIfAbsent(date, d -> new ArrayList<>())
+                                    .add(userMealWithExcess(userMeal, false));
                         }
-                    } else {
-                        if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                            aggregator.mealWithExcess.merge(date,
-                                    new ArrayList<>(Collections.singletonList(userMealWithExcess(userMeal, true))),
-                                    (value1, value2) -> {
-                                        value1.addAll(value2);
-                                        return value1;
-                                    });
-                        }
-                        aggregator.mealWithoutExcess.remove(date);
+                    }
+                    if (isExcess) {
+                        aggregator.mealsWithoutExcess.remove(date);
                     }
                 },
                 (aggregator1, aggregator2) -> {
-                    aggregator2.mealWithExcess.forEach((key, value) -> aggregator1.mealWithExcess
-                            .merge(key, value, (v1, v2) -> {
-                                v1.addAll(v2);
-                                return v1;
-                            }));
-                    aggregator2.mealWithoutExcess.forEach((key, value) -> aggregator1.mealWithoutExcess
-                            .merge(key, value, (v1, v2) -> {
-                                v1.addAll(v2);
-                                return v1;
-                            }));
+                    aggregator2.mealsWithExcess.forEach((key, value) -> aggregator1.mealsWithExcess
+                            .computeIfAbsent(key, k -> new ArrayList<>()).addAll(value));
+                    aggregator2.mealsWithoutExcess.forEach((key, value) -> aggregator1.mealsWithoutExcess
+                            .computeIfAbsent(key, k -> new ArrayList<>()).addAll(value));
                     return aggregator1;
                 },
-                aggregator -> Stream.concat(aggregator.mealWithoutExcess.entrySet().stream(),
-                        aggregator.mealWithExcess.entrySet().stream()
-                                .filter(entry -> !aggregator.mealWithoutExcess.containsKey(entry.getKey())))
-                        .map(Map.Entry::getValue)
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList())
+                aggregator -> {
+                    aggregator.mealsWithExcess.putAll(aggregator.mealsWithoutExcess);
+                    return aggregator.mealsWithExcess.values().stream()
+                            .flatMap(List::stream)
+                            .collect(Collectors.toList());
+                }
                 )
         );
     }
@@ -195,5 +138,25 @@ public class UserMealsUtil {
 
     private static UserMealWithExcess userMealWithExcess(UserMeal userMeal, boolean isExcess) {
         return new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), isExcess);
+    }
+
+    private static void recursionFilter(List<UserMeal> meals,
+                                        LocalTime startTime,
+                                        LocalTime endTime,
+                                        int caloriesPerDay,
+                                        int index,
+                                        List<UserMealWithExcess> resultList,
+                                        Map<LocalDate, Integer> caloriesMap) {
+        if (meals.size() > 0) {
+            UserMeal userMeal = meals.get(index);
+            caloriesMap.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
+            if (index < meals.size() - 1) {
+                recursionFilter(meals, startTime, endTime, caloriesPerDay, index + 1, resultList, caloriesMap);
+            }
+            boolean isExcess = caloriesMap.get(getDate(userMeal)) > caloriesPerDay;
+            if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                resultList.add(userMealWithExcess(userMeal, isExcess));
+            }
+        }
     }
 }
