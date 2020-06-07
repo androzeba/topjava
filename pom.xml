@@ -38,6 +38,20 @@
     </build>
 
     <dependencies>
+        <!-- Time formatting in JSP -->
+        <dependency>
+            <groupId>net.sargue</groupId>
+            <artifactId>java-time-jsptags</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+
+        <!-- JSTL -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
         <!-- Logging with SLF4J & LogBack -->
         <dependency>
             <groupId>org.slf4j</groupId>

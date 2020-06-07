@@ -1,19 +1,21 @@
 package ru.javawebinar.topjava.optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.javawebinar.topjava.model.Meal;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DataSource {
-    private static volatile DataSource instance;
+public class MemoryDataSource {
+    private static volatile MemoryDataSource instance;
 
-    public static final AtomicInteger ID = new AtomicInteger(0);
+    private static final AtomicInteger ID = new AtomicInteger(0);
+
+    private static final Logger log = LoggerFactory.getLogger(MemoryDataSource.class);
 
     private static final List<Meal> mealsList = new CopyOnWriteArrayList<>();
     static {
@@ -26,52 +28,57 @@ public class DataSource {
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
     }
 
-    private DataSource() {
+    private MemoryDataSource() {
     }
 
-    public static DataSource getInstance() {
+    public static MemoryDataSource getInstance() {
         if (instance == null) {
-            synchronized (DataSource.class) {
+            synchronized (MemoryDataSource.class) {
                 if (instance == null) {
-                    instance = new DataSource();
+                    instance = new MemoryDataSource();
                 }
             }
         }
         return instance;
     }
 
-    public static List<Meal> getMealsList() {
-        return mealsList;
+    public static int getID() {
+        return ID.getAndIncrement();
     }
 
     public Meal getMeal(int id) {
-        if (id < mealsList.size()) {
+        if (id >= 0 && id < mealsList.size()) {
+            log.debug("Meal with id=" + id + " is received from database");
             return mealsList.get(id);
         }
         return null;
     }
 
     public List<Meal> getAllMeals() {
+        log.debug("All meals are received from database");
         return mealsList;
     }
 
     public void addMeal(LocalDateTime dateTime, String description, int calories) {
         mealsList.add(new Meal(dateTime, description, calories));
+        log.debug("New meal is saved to database");
     }
 
     public void updateMeal(int id, LocalDateTime dateTime, String description, int calories) {
-        if (id < mealsList.size() && mealsList.get(id) != null) {
+        if (id >= 0 && id < mealsList.size() && mealsList.get(id) != null) {
             Meal meal = mealsList.get(id);
             meal.setDateTime(dateTime);
             meal.setDescription(description);
             meal.setCalories(calories);
             mealsList.set(id, meal);
+            log.debug("Meal with id=" + id + " is updated");
         }
     }
 
     public void deleteMeal(int id) {
-        if (id < mealsList.size()) {
+        if (id >= 0 && id < mealsList.size()) {
             mealsList.set(id, null);
+            log.debug("Meal with id=" + id + " is deleted");
         }
     }
 }

@@ -1,6 +1,6 @@
 package ru.javawebinar.topjava.model;
 
-import ru.javawebinar.topjava.optional.DataSource;
+import ru.javawebinar.topjava.optional.MemoryDataSource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ public class Meal {
     private final int id;
 
     public Meal(LocalDateTime dateTime, String description, int calories) {
-        this.id = DataSource.ID.getAndIncrement();
+        this.id = MemoryDataSource.getID();
         this.dateTime = dateTime;
         this.description = description;
         this.calories = calories;

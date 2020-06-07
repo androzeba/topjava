@@ -7,7 +7,7 @@ import java.util.List;
 
 public class MealDaoImpl implements MealDao {
 
-    private DataSource dataSource = DataSource.getInstance();
+    private final MemoryDataSource dataSource = MemoryDataSource.getInstance();
 
     @Override
     public void create(LocalDateTime dateTime, String description, int calories) {
