@@ -1,4 +1,4 @@
-package ru.javawebinar.topjava.optional;
+package ru.javawebinar.topjava.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,17 +7,19 @@ import ru.javawebinar.topjava.model.Meal;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-public class MemoryDataSource {
-    private static volatile MemoryDataSource instance;
+public class MemoryDataSource implements MealDao {
 
     private static final AtomicInteger ID = new AtomicInteger(0);
 
     private static final Logger log = LoggerFactory.getLogger(MemoryDataSource.class);
 
     private static final List<Meal> mealsList = new CopyOnWriteArrayList<>();
+
     static {
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
@@ -26,27 +28,23 @@ public class MemoryDataSource {
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000));
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500));
         mealsList.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
-    }
-
-    private MemoryDataSource() {
-    }
-
-    public static MemoryDataSource getInstance() {
-        if (instance == null) {
-            synchronized (MemoryDataSource.class) {
-                if (instance == null) {
-                    instance = new MemoryDataSource();
-                }
-            }
-        }
-        return instance;
+        mealsList.forEach(meal -> meal.setId(getID()));
     }
 
     public static int getID() {
         return ID.getAndIncrement();
     }
 
-    public Meal getMeal(int id) {
+    @Override
+    public Meal create(Meal meal) {
+        meal.setId(getID());
+        mealsList.add(meal);
+        log.debug("New meal is saved to database");
+        return meal;
+    }
+
+    @Override
+    public Meal getById(int id) {
         if (id >= 0 && id < mealsList.size()) {
             log.debug("Meal with id=" + id + " is received from database");
             return mealsList.get(id);
@@ -54,28 +52,25 @@ public class MemoryDataSource {
         return null;
     }
 
-    public List<Meal> getAllMeals() {
+    @Override
+    public List<Meal> getAll() {
+        List<Meal> result = mealsList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         log.debug("All meals are received from database");
-        return mealsList;
+        return result;
     }
 
-    public void addMeal(LocalDateTime dateTime, String description, int calories) {
-        mealsList.add(new Meal(dateTime, description, calories));
-        log.debug("New meal is saved to database");
+    @Override
+    public Meal update(Meal meal) {
+        int id = meal.getId();
+        mealsList.set(id, meal);
+        log.debug("Meal with id=" + id + " is updated");
+        return meal;
     }
 
-    public void updateMeal(int id, LocalDateTime dateTime, String description, int calories) {
-        if (id >= 0 && id < mealsList.size() && mealsList.get(id) != null) {
-            Meal meal = mealsList.get(id);
-            meal.setDateTime(dateTime);
-            meal.setDescription(description);
-            meal.setCalories(calories);
-            mealsList.set(id, meal);
-            log.debug("Meal with id=" + id + " is updated");
-        }
-    }
-
-    public void deleteMeal(int id) {
+    @Override
+    public void delete(int id) {
         if (id >= 0 && id < mealsList.size()) {
             mealsList.set(id, null);
             log.debug("Meal with id=" + id + " is deleted");
