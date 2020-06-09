@@ -29,7 +29,7 @@
             <td>${meal.getDateTime().format(requestScope.formatter)}</td>
             <td>${meal.getDescription()}</td>
             <td>${meal.getCalories()}</td>
-            <td><a href="editMeal?action=update&id=${meal.getId()}">update</a>
+            <td><a href="meals/editMeal?action=update&id=${meal.getId()}">update</a>
             </td>
             <td><a href="meals?action=delete&id=${meal.getId()}">delete</a></td>
         </tr>
@@ -37,6 +37,6 @@
     </tbody>
 </table>
 <br>
-<a href="editMeal?action=create">Создать новую запись</a>
+<a href="meals/editMeal?action=create">Создать новую запись</a>
 </body>
 </html>

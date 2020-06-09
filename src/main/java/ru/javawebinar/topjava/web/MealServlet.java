@@ -3,7 +3,7 @@ package ru.javawebinar.topjava.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.javawebinar.topjava.dao.MealDao;
-import ru.javawebinar.topjava.dao.MemoryDataSource;
+import ru.javawebinar.topjava.dao.MemoryMealDao;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
@@ -16,14 +16,34 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
 public class MealServlet extends HttpServlet {
-    private final MealDao mealDao = new MemoryDataSource();
-    private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+
+    public static final int MAX_CALORIES = 2000;
+
+    private MealDao mealDao;
+
+    private static Logger log;
+
+    private static DateTimeFormatter formatter;
+
+    @Override
+    public void init() throws ServletException {
+        mealDao = new MemoryMealDao();
+        log = LoggerFactory.getLogger(MealServlet.class);
+        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500));
+        mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -41,8 +61,7 @@ public class MealServlet extends HttpServlet {
                     request.setAttribute("action", "update");
                     int id = Integer.parseInt(request.getParameter("id"));
                     log.debug("Request to update meal with id=" + id);
-                    request.setAttribute("mealToUpdate", mealDao.getById(id));
-                    request.setAttribute("formatter", formatter);
+                    request.setAttribute("mealToUpdate", new MealTo(mealDao.getById(id), false));
                     request.getRequestDispatcher("/editMeal.jsp").forward(request, response);
                     return;
                 }
@@ -55,7 +74,7 @@ public class MealServlet extends HttpServlet {
             }
         }
         log.debug("Request to output all meals");
-        List<MealTo> mealsToList = MealsUtil.filteredByStreams(mealDao.getAll(), LocalTime.MIN, LocalTime.MAX, 2000);
+        List<MealTo> mealsToList = MealsUtil.filteredByStreams(mealDao.getAll(), LocalTime.MIN, LocalTime.MAX, MAX_CALORIES);
         request.setAttribute("mealsToList", mealsToList);
         request.setAttribute("formatter", formatter);
         request.getRequestDispatcher("/meals.jsp").forward(request, response);
@@ -71,10 +90,7 @@ public class MealServlet extends HttpServlet {
         if (action.equalsIgnoreCase("update")) {
             log.debug("Enter to update meal block");
             int id = Integer.parseInt(request.getParameter("id"));
-            Meal meal = mealDao.getById(id);
-            meal.setDateTime(LocalDateTime.of(date, time));
-            meal.setDescription(description);
-            meal.setCalories(calories);
+            Meal meal = new Meal(id, LocalDateTime.of(date, time), description, calories);
             mealDao.update(meal);
         }
         if (action.equalsIgnoreCase("create")) {
