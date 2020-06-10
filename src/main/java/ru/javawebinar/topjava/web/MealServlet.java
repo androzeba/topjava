@@ -2,8 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.javawebinar.topjava.dao.MealDao;
-import ru.javawebinar.topjava.dao.MemoryMealDao;
+import ru.javawebinar.topjava.dao.*;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
@@ -33,7 +32,8 @@ public class MealServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        mealDao = new MemoryMealDao();
+        mealDao = new MemoryMapMealDao();
+//        mealDao = new MemoryListMealDao();
         log = LoggerFactory.getLogger(MealServlet.class);
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));

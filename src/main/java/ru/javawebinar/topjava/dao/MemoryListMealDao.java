@@ -10,21 +10,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class MemoryMealDao implements MealDao {
+public class MemoryListMealDao implements MealDao {
 
-    private static final Logger log = LoggerFactory.getLogger(MemoryMealDao.class);
+    private static final Logger log = LoggerFactory.getLogger(MemoryListMealDao.class);
 
     private final AtomicInteger id = new AtomicInteger(0);
 
     private final List<Meal> mealsList = new CopyOnWriteArrayList<>();
 
-    private int getID() {
+    private int getId() {
         return id.getAndIncrement();
     }
 
     @Override
     public Meal create(Meal meal) {
-        meal.setId(getID());
+        meal.setId(getId());
         mealsList.add(meal);
         log.debug("New meal is saved to database");
         return meal;
