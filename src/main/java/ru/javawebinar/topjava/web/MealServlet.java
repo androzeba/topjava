@@ -24,16 +24,15 @@ public class MealServlet extends HttpServlet {
 
     public static final int MAX_CALORIES = 2000;
 
-    private MealDao mealDao;
-
     private static Logger log;
 
     private static DateTimeFormatter formatter;
 
+    private MealDao mealDao;
+
     @Override
     public void init() throws ServletException {
         mealDao = new MemoryMapMealDao();
-//        mealDao = new MemoryListMealDao();
         log = LoggerFactory.getLogger(MealServlet.class);
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         mealDao.create(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
@@ -52,7 +51,7 @@ public class MealServlet extends HttpServlet {
             switch (action) {
                 case "delete": {
                     int id = Integer.parseInt(request.getParameter("id"));
-                    log.debug("Request to delete meal with id=" + id);
+                    log.debug("Request to delete meal with id={}", id);
                     mealDao.delete(id);
                     response.sendRedirect("meals");
                     return;
@@ -60,8 +59,14 @@ public class MealServlet extends HttpServlet {
                 case "update": {
                     request.setAttribute("action", "update");
                     int id = Integer.parseInt(request.getParameter("id"));
-                    log.debug("Request to update meal with id=" + id);
-                    request.setAttribute("mealToUpdate", new MealTo(mealDao.getById(id), false));
+                    log.debug("Request to update meal with id={}", id);
+                    Meal meal = mealDao.getById(id);
+                    request.setAttribute("mealToUpdate",
+                            new MealTo(meal.getId(),
+                                    meal.getDateTime(),
+                                    meal.getDescription(),
+                                    meal.getCalories(),
+                                    false));
                     request.getRequestDispatcher("/editMeal.jsp").forward(request, response);
                     return;
                 }

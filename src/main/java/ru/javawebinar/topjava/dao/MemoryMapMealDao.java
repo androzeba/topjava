@@ -32,7 +32,7 @@ public class MemoryMapMealDao implements MealDao {
 
     @Override
     public Meal getById(int id) {
-        log.debug("Meal with id=" + id + " is received from database");
+        log.debug("Meal is received from database. Meal id={}", id);
         return mealMap.get(id);
     }
 
@@ -44,14 +44,18 @@ public class MemoryMapMealDao implements MealDao {
 
     @Override
     public Meal update(Meal meal) {
-        mealMap.replace(meal.getId(), meal);
-        log.debug("Meal with id=" + id + " is updated");
-        return meal;
+        int id = meal.getId();
+        if (mealMap.containsKey(id)) {
+            mealMap.replace(id, meal);
+            log.debug("Meal is updated. Meal id={}", id);
+            return meal;
+        }
+        return null;
     }
 
     @Override
     public void delete(int id) {
         mealMap.remove(id);
-        log.debug("Meal with id=" + id + " is deleted");
+        log.debug("Meal is deleted. Meal id={}", id);
     }
 }

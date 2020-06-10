@@ -9,24 +9,24 @@
 </head>
 <body>
 <h3>${requestScope.action == 'create' ? 'Добавление еды' : 'Редактирование еды'}</h3>
-<c:set var="reference" value="../meals?action=update&id=${requestScope.mealToUpdate.getId()}"/>
+<c:set var="reference" value="meals?action=update&id=${requestScope.mealToUpdate.getId()}"/>
 <div>
-    <form action="${requestScope.action == 'create' ? '../meals?action=create' : reference}"
+    <form action="${requestScope.action == 'create' ? 'meals?action=create' : reference}"
           method="POST">
         <label for="date">Дата</label>
         <input type="date" name="date" id="date"
-               value="${requestScope.action == 'create' ? '' : requestScope.mealToUpdate.getDate()}">
+               value="${requestScope.mealToUpdate.getDate()}">
         <label for="time">Время</label>
         <input type="time" name="time" id="time"
-               value="${requestScope.action == 'create' ? '' : requestScope.mealToUpdate.getTime()}">
+               value="${requestScope.mealToUpdate.getTime()}">
         <br>
         <label for="description">Описание</label>
         <input type="text" name="description" id="description"
-               value="${requestScope.action == 'create' ? '' : requestScope.mealToUpdate.getDescription()}">
+               value="${requestScope.mealToUpdate.description}">
         <br>
         <label for="calories">Калории</label>
         <input type="number" name="calories" id="calories"
-               value="${requestScope.action == 'create' ? '' : requestScope.mealToUpdate.getCalories()}">
+               value="${requestScope.mealToUpdate.calories}">
         <br>
         <input type="submit"
                value="${requestScope.action == 'create' ? 'Добавить в список' : 'Сохранить изменения'}">

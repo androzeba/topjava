@@ -25,18 +25,18 @@
     </thead>
     <tbody>
     <c:forEach items="${requestScope.mealsToList}" var="meal">
-        <tr class="${meal.isExcess() ? 'red' : 'green'}">
-            <td>${meal.getDateTime().format(requestScope.formatter)}</td>
-            <td>${meal.getDescription()}</td>
-            <td>${meal.getCalories()}</td>
-            <td><a href="meals/editMeal?action=update&id=${meal.getId()}">update</a>
+        <tr class="${meal.excess ? 'red' : 'green'}">
+            <td>${meal.dateTime.format(requestScope.formatter)}</td>
+            <td>${meal.description}</td>
+            <td>${meal.calories}</td>
+            <td><a href="meals?action=update&id=${meal.id}">update</a>
             </td>
-            <td><a href="meals?action=delete&id=${meal.getId()}">delete</a></td>
+            <td><a href="meals?action=delete&id=${meal.id}">delete</a></td>
         </tr>
     </c:forEach>
     </tbody>
 </table>
 <br>
-<a href="meals/editMeal?action=create">Создать новую запись</a>
+<a href="meals?action=create">Создать новую запись</a>
 </body>
 </html>
