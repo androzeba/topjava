@@ -23,13 +23,14 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public Meal save(Meal meal, int userId) {
         if (meal.isNew()) {
-            meal.setId(counter.incrementAndGet());
             meal.setUserId(userId);
+            meal.setId(counter.incrementAndGet());
             repository.put(meal.getId(), meal);
             return meal;
         }
-        // handle case: update, but not present in storage
-        if (meal.getUserId() == userId) {
+        if (isAllowed(meal, userId)) {
+            meal.setUserId(userId);
+            // handle case: update, but not present in storage
             return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
         }
         return null;
@@ -58,6 +59,10 @@ public class InMemoryMealRepository implements MealRepository {
                 .filter(meal -> meal.getUserId() == userId)
                 .sorted(Comparator.comparing(Meal::getDate).reversed())
                 .collect(Collectors.toList());
+    }
+
+    private boolean isAllowed(Meal meal, int userId) {
+        return repository.get(meal.getId()).getUserId() == userId;
     }
 }
 
