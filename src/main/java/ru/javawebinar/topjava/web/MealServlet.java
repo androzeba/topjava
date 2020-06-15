@@ -6,9 +6,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.StringUtils;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.repository.MealRepository;
-import ru.javawebinar.topjava.repository.inmemory.InMemoryMealRepository;
-import ru.javawebinar.topjava.util.MealsUtil;
 import ru.javawebinar.topjava.web.meal.MealRestController;
 
 import javax.servlet.ServletConfig;
@@ -81,7 +78,14 @@ public class MealServlet extends HttpServlet {
                 request.setAttribute("meal", meal);
                 request.getRequestDispatcher("/mealForm.jsp").forward(request, response);
                 break;
-            case "all":
+            case "user":
+                String userId = request.getParameter("userId");
+                if (!StringUtils.isEmpty(userId)) {
+                    SecurityUtil.setAuthUserId(Integer.parseInt(userId));
+                    response.sendRedirect("meals");
+                }
+                break;
+            case "filter":
                 String startDateParam = request.getParameter("startDate");
                 String endDateParam = request.getParameter("endDate");
                 String startTimeParam = request.getParameter("startTime");
@@ -96,6 +100,8 @@ public class MealServlet extends HttpServlet {
                 request.setAttribute("endTime", request.getParameter("endTime"));
                 request.setAttribute("meals", controller.getAllFiltered(startDate, endDate, startTime, endTime));
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
+                break;
+            case "all":
             default:
                 log.info("getAll");
                 request.setAttribute("meals", controller.getAll());

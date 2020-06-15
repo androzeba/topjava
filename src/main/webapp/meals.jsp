@@ -25,6 +25,7 @@
     <br><br>
     <div>
         <form action="meals" method="get">
+            <input type="hidden" name="action" value="filter">
             <label for="startDate">From date</label>
             <input type="date" name="startDate" id="startDate" value="${startDate}">
             <label for="endDate">To date</label>
