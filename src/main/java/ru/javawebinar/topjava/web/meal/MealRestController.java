@@ -12,6 +12,7 @@ import ru.javawebinar.topjava.util.MealsUtil;
 import java.time.LocalTime;
 import java.util.List;
 
+import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
@@ -47,8 +48,9 @@ public class MealRestController {
         return MealsUtil.getFilteredTos(meals, authUserCaloriesPerDay(), LocalTime.MIN, LocalTime.MAX);
     }
 
-    public void update(Meal meal) {
+    public void update(Meal meal, int id) {
         log.info("update {}", meal);
+        assureIdConsistent(meal, id);
         service.update(meal, authUserId());
     }
 }
