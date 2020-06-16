@@ -11,6 +11,7 @@ import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,7 +80,11 @@ public class InMemoryMealRepository implements MealRepository {
     public List<Meal> getAll(int userId) {
         log.info("getAll");
         if (repository.containsKey(userId)) {
-            return new ArrayList<>(repository.get(userId).values());
+            return repository.get(userId).values().stream()
+                    .sorted(Comparator
+                            .comparing(Meal::getDate)
+                            .reversed())
+                    .collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
