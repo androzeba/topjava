@@ -27,13 +27,13 @@
         <form action="meals" method="get">
             <input type="hidden" name="action" value="filter">
             <label for="startDate">From date</label>
-            <input type="date" name="startDate" id="startDate" value="${startDate}">
+            <input type="date" name="startDate" id="startDate" value="${param.get("startDate")}">
             <label for="endDate">To date</label>
-            <input type="date" name="endDate" id="endDate" value="${endDate}">
+            <input type="date" name="endDate" id="endDate" value="${param.get("endDate")}">
             <label for="startTime">From time</label>
-            <input type="time" name="startTime" id="startTime" value="${startTime}">
+            <input type="time" name="startTime" id="startTime" value="${param.get("startTime")}">
             <label for="endTime">To time</label>
-            <input type="time" name="endTime" id="endTime" value="${endTime}">
+            <input type="time" name="endTime" id="endTime" value="${param.get("endTime")}">
             <button type="submit">Filter</button>
         </form>
     </div>
