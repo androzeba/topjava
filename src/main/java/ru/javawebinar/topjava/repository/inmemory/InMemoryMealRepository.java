@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository
@@ -40,19 +41,15 @@ public class InMemoryMealRepository implements MealRepository {
             repository.get(userId).put(meal.getId(), meal);
             return meal;
         }
-        if (isAllowed(meal, userId)) {
-            meal.setUserId(userId);
-            // handle case: update, but not present in storage
-            return repository.get(userId).computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
+        Map<Integer, Meal> userMeals = repository.get(userId);
+        if (userMeals != null) {
+            Meal userMeal = userMeals.get(meal.getId());
+            if (userMeal != null && userMeal.getUserId() == userId) {
+                meal.setUserId(userId);
+            }
+            return userMeals.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
         }
         return null;
-    }
-
-    private boolean isAllowed(Meal meal, int userId) {
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).get(meal.getId()).getUserId() == userId;
-        }
-        return false;
     }
 
     @Override
@@ -67,10 +64,11 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public Meal get(int id, int userId) {
         log.info("get {}", id);
-        if (repository.containsKey(userId)) {
-            Meal meal = repository.get(userId).get(id);
-            if (meal != null && meal.getUserId() == userId) {
-                return meal;
+        Map<Integer, Meal> userMeals = repository.get(userId);
+        if (userMeals != null) {
+            Meal userMeal = userMeals.get(id);
+            if (userMeal != null && userMeal.getUserId() == userId) {
+                return userMeal;
             }
         }
         return null;
@@ -79,22 +77,26 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public List<Meal> getAll(int userId) {
         log.info("getAll");
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).values().stream()
+        return getByFilter(userId, meal -> true);
+    }
+
+    @Override
+    public List<Meal> getAllFilteredByDate(int userId, LocalDate startDate, LocalDate endDate) {
+        log.info("getAllFilteredByDate");
+        return getByFilter(userId, meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDate(), startDate, endDate.plusDays(1)));
+    }
+
+    public List<Meal> getByFilter(int userId, Predicate<Meal> filter) {
+        Map<Integer, Meal> userMeals = repository.get(userId);
+        if (userMeals != null) {
+            return userMeals.values().stream()
+                    .filter(filter)
                     .sorted(Comparator
                             .comparing(Meal::getDate)
                             .reversed())
                     .collect(Collectors.toList());
         }
         return new ArrayList<>();
-    }
-
-    @Override
-    public List<Meal> getAllFilteredByDate(int userId, LocalDate startDate, LocalDate endDate) {
-        log.info("getAllFilteredByDate");
-        return getAll(userId).stream()
-                .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDate(), startDate, endDate.plusDays(1)))
-                .collect(Collectors.toList());
     }
 }
 
