@@ -20,7 +20,8 @@ import static ru.javawebinar.topjava.MealTestData.*;
 
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
-        "classpath:spring/spring-db.xml"
+        "classpath:spring/spring-db.xml",
+        "classpath:spring/spring-app-jdbc.xml"
 })
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
@@ -47,7 +48,8 @@ public class MealServiceTest {
         assertThrows(NotFoundException.class, () -> service.get(NOT_FOUND, USER_ID));
     }
 
-    public void GetNotValidUser() throws Exception {
+    @Test
+    public void getNotValidUser() throws Exception {
         assertThrows(NotFoundException.class, () -> service.get(MEAL_100004.getId(), ADMIN_ID));
     }
 
@@ -69,7 +71,7 @@ public class MealServiceTest {
 
     @Test
     public void getBetweenInclusive() throws Exception {
-        List<Meal> all = service.getBetweenInclusive(LocalDate.of(2020, 1, 30), LocalDate.of(2020, 1, 30),USER_ID);
+        List<Meal> all = service.getBetweenInclusive(LocalDate.of(2020, 1, 30), LocalDate.of(2020, 1, 30), USER_ID);
         assertMatch(all, MEAL_100004, MEAL_100003, MEAL_100002);
     }
 
