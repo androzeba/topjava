@@ -1,5 +1,7 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+import ru.javawebinar.topjava.TimeMeasureRule;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
@@ -29,6 +32,19 @@ public class MealServiceTest {
 
     @Autowired
     private MealService service;
+
+    @Rule
+    public TimeMeasureRule tmr = new TimeMeasureRule();
+
+    @AfterClass
+    public static void printTimeMap() {
+        System.out.println("Test time evaluation: ");
+        TEST_TIME.forEach((k, v) -> {
+                    System.out.print(k.getMethodName());
+                    System.out.println(" Test time = " + v + " ms");
+                }
+        );
+    }
 
     @Test
     @Transactional
