@@ -11,12 +11,44 @@
         </encoder>
     </appender>
 
-    <logger name="org.postgresql" level="debug"/>
-    <logger name="org.springframework.jdbc" level="info"/>
-    <logger name="ru.javawebinar.topjava" level="debug"/>
+    <appender name="console_colored" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%boldCyan(%d{HH:mm:ss.SSS} %-5level %msg%n)</pattern>
+        </encoder>
+    </appender>
 
-    <root level="INFO">
+    <appender name="console_colored_table" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%boldYellow(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.postgresql" level="debug">
         <appender-ref ref="console"/>
-    </root>
+    </logger>
+
+    <logger name="org.springframework.jdbc" level="info">
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="ru.javawebinar.topjava" level="debug">
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="timeMeasure" level="info">
+        <appender-ref ref="console_colored"/>
+    </logger>
+
+    <logger name="table" level="info">
+        <appender-ref ref="console_colored_table"/>
+    </logger>
 
 </configuration>

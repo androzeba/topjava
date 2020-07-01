@@ -3,19 +3,23 @@ package ru.javawebinar.topjava.service;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.TimeMeasureRule;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -30,6 +34,10 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("table");
+
+    public static Map<Description, Long> testTime = new HashMap<>();
+
     @Autowired
     private MealService service;
 
@@ -38,35 +46,27 @@ public class MealServiceTest {
 
     @AfterClass
     public static void printTimeMap() {
-        System.out.println("Test time evaluation: ");
-        TEST_TIME.forEach((k, v) -> {
-                    System.out.print(k.getMethodName());
-                    System.out.println(" Test time = " + v + " ms");
-                }
-        );
+        testTime.forEach((k, v) ->
+                LOGGER.info(String.format("%-25s %s ms", k.getMethodName(), v)));
     }
 
     @Test
-    @Transactional
     public void delete() throws Exception {
         service.delete(MEAL1_ID, USER_ID);
         assertThrows(NotFoundException.class, () -> service.get(MEAL1_ID, USER_ID));
     }
 
     @Test
-    @Transactional
     public void deleteNotFound() throws Exception {
         assertThrows(NotFoundException.class, () -> service.delete(NOT_FOUND, USER_ID));
     }
 
     @Test
-    @Transactional
     public void deleteNotOwn() throws Exception {
         assertThrows(NotFoundException.class, () -> service.delete(MEAL1_ID, ADMIN_ID));
     }
 
     @Test
-    @Transactional
     public void create() throws Exception {
         Meal created = service.create(getNew(), USER_ID);
         int newId = created.id();
@@ -93,7 +93,6 @@ public class MealServiceTest {
     }
 
     @Test
-    @Transactional
     public void update() throws Exception {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
