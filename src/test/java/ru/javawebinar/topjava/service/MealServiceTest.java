@@ -3,6 +3,7 @@ package ru.javawebinar.topjava.service;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.javawebinar.topjava.TimeMeasureRule;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -34,7 +35,8 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("table");
+    private static final Logger LOGGER_TABLE = LoggerFactory.getLogger("table");
+    private static final Logger LOGGER_TIME = LoggerFactory.getLogger("timeMeasure");
 
     public static Map<Description, Long> testTime = new HashMap<>();
 
@@ -42,12 +44,20 @@ public class MealServiceTest {
     private MealService service;
 
     @Rule
-    public TimeMeasureRule tmr = new TimeMeasureRule();
+    public Stopwatch stopwatch = new Stopwatch() {
+        @Override
+        protected void finished(long nanos, Description description) {
+            long timeElapsed = TimeUnit.NANOSECONDS.toMillis(nanos);
+            String msg = description.getMethodName() + " Test time = " + timeElapsed + " ms";
+            LOGGER_TIME.info(msg);
+            testTime.put(description, timeElapsed);
+        }
+    };
 
     @AfterClass
     public static void printTimeMap() {
         testTime.forEach((k, v) ->
-                LOGGER.info(String.format("%-25s %s ms", k.getMethodName(), v)));
+                LOGGER_TABLE.info(String.format("%-25s %s ms", k.getMethodName(), v)));
     }
 
     @Test
