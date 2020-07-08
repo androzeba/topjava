@@ -18,7 +18,7 @@ public abstract class UserServiceTest extends AbstractServiceTest {
 
 
     @Autowired
-    private UserService service;
+    protected UserService service;
 
     @Autowired
     private CacheManager cacheManager;
@@ -82,6 +82,6 @@ public abstract class UserServiceTest extends AbstractServiceTest {
     @Test
     public void getAll() throws Exception {
         List<User> all = service.getAll();
-        USER_MATCHER.assertMatch(all, ADMIN, USER);
+        USER_MATCHER.assertMatch(all, ADMIN, NO_MEAL_USER, USER);
     }
 }
