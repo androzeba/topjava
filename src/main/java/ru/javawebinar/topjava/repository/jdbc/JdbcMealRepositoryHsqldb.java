@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 
 @Repository
 @Profile(Profiles.HSQL_DB)
-public class JdbcMealRepositoryHsqldb extends JdbcMealRepository {
+public class JdbcMealRepositoryHsqldb extends JdbcMealRepository <Timestamp> {
 
     public JdbcMealRepositoryHsqldb(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         super(jdbcTemplate, namedParameterJdbcTemplate);
     }
 
     @Override
-    public Timestamp actualFormatTime(LocalDateTime time) {
+    protected Timestamp actualFormatTime(LocalDateTime time) {
         return Timestamp.valueOf(time);
     }
 }

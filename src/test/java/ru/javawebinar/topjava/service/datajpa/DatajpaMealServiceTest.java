@@ -18,8 +18,9 @@ public class DatajpaMealServiceTest extends MealServiceTest {
     @Test
     public void getMealWithUser() throws Exception {
         Meal meal = service.getMealWithUser(ADMIN_MEAL_ID + 1, ADMIN_ID);
-        ADMIN_MEAL2.setUser(ADMIN);
-        MEAL_WITH_USER_MATCHER.assertMatch(meal, ADMIN_MEAL2);
+        Meal mealToCompare = ADMIN_MEAL2;
+        mealToCompare.setUser(ADMIN);
+        MEAL_WITH_USER_MATCHER.assertMatch(meal, mealToCompare);
     }
 
     @Test
