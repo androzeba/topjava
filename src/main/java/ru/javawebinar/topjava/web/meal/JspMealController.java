@@ -33,7 +33,7 @@ public class JspMealController extends AbstractMealController {
         return "mealForm";
     }
 
-    @PostMapping("/update")
+    @PostMapping
     public String create(HttpServletRequest request) {
         Assert.notNull(create(newMeal(request)), "unsuccessful creation");
         return "redirect:/meals";
@@ -45,7 +45,7 @@ public class JspMealController extends AbstractMealController {
         return "mealForm";
     }
 
-    @PostMapping("/update/{id}")
+    @PostMapping("/{id}")
     public String update(@PathVariable("id") int id, HttpServletRequest request) {
         update(newMeal(request), id);
         return "redirect:/meals";
@@ -57,7 +57,7 @@ public class JspMealController extends AbstractMealController {
         return "redirect:/meals";
     }
 
-    @GetMapping("")
+    @GetMapping
     public String getAll(HttpServletRequest request) {
         request.setAttribute("meals", getAll());
         return "meals";

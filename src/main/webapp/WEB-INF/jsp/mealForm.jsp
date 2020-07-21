@@ -7,9 +7,11 @@
 <body>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
-    <h2>${param.action == 'create' ? 'Create meal' : 'Edit meal'}</h2>
     <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.Meal" scope="request"/>
-    <form method="post" action="meals/update/${meal.id}">
+    <spring:message code="meal.create" var="create"/>
+    <spring:message code="meal.edit" var="edit"/>
+    <h2>${meal.id == null ? create : edit}</h2>
+    <form method="post" action="meals/${meal.id}">
         <dl>
             <dt><spring:message code="meal.dateTime"/>:</dt>
             <dd><input type="datetime-local" value="${meal.dateTime}" name="dateTime" required></dd>
