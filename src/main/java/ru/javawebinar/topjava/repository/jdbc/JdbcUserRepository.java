@@ -20,11 +20,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static ru.javawebinar.topjava.util.ValidationUtil.validate;
+
 @Repository
 @Transactional(readOnly = true)
 public class JdbcUserRepository implements UserRepository {
-
-    private final Validator validator;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -40,8 +40,6 @@ public class JdbcUserRepository implements UserRepository {
 
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        this.validator = validatorFactory.getValidator();
     }
 
     @Override
@@ -49,7 +47,7 @@ public class JdbcUserRepository implements UserRepository {
     public User save(User user) {
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validate(user);
         if (violations.size() > 0) throw new ConstraintViolationException(violations);
 
         if (user.isNew()) {
@@ -123,26 +121,25 @@ public class JdbcUserRepository implements UserRepository {
         @Override
         public void processRow(ResultSet rs) throws SQLException {
             int id = rs.getInt("id");
-            User user = map.computeIfAbsent(id, i -> new User());
-            if (user.isNew()) {
-                user.setId(id);
-                user.setRoles(new HashSet<>());
-                user.setName(rs.getString("name"));
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setRegistered(rs.getDate("registered"));
-                user.setEnabled(rs.getBoolean("enabled"));
-                user.setCaloriesPerDay(rs.getInt("calories_per_day"));
-            }
+            User user = map.computeIfAbsent(id, i -> {
+                User newUser = new User();
+                newUser.setId(id);
+                newUser.setRoles(new HashSet<>());
+                try {
+                    newUser.setName(rs.getString("name"));
+                    newUser.setEmail(rs.getString("email"));
+                    newUser.setPassword(rs.getString("password"));
+                    newUser.setRegistered(rs.getDate("registered"));
+                    newUser.setEnabled(rs.getBoolean("enabled"));
+                    newUser.setCaloriesPerDay(rs.getInt("calories_per_day"));
+                } catch (SQLException e) {
+                }
+                result.add(newUser);
+                return newUser;
+            });
             String dbRole = rs.getString("role");
             if (dbRole != null) {
-                Role role = Role.valueOf(dbRole);
-                Set<Role> roles = user.getRoles();
-                roles.add(role);
-                user.setRoles(roles);
-            }
-            if (!result.contains(user)) {
-                result.add(user);
+                user.getRoles().add(Role.valueOf(dbRole));
             }
         }
 

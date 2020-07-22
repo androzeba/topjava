@@ -18,11 +18,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static ru.javawebinar.topjava.util.ValidationUtil.validate;
+
 @Repository
 @Transactional(readOnly = true)
 public class JdbcMealRepository implements MealRepository {
-
-    private final Validator validator;
 
     private static final RowMapper<Meal> ROW_MAPPER = BeanPropertyRowMapper.newInstance(Meal.class);
 
@@ -39,15 +39,13 @@ public class JdbcMealRepository implements MealRepository {
 
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        this.validator = validatorFactory.getValidator();
     }
 
     @Override
     @Transactional
     public Meal save(Meal meal, int userId) {
 
-        Set<ConstraintViolation<Meal>> violations = validator.validate(meal);
+        Set<ConstraintViolation<Meal>> violations = validate(meal);
         Set<ConstraintViolation<Meal>> violationsResult = new HashSet<>(violations);
         violations.forEach(v -> {
             if ("user".equals(v.getPropertyPath().toString())) violationsResult.remove(v);
