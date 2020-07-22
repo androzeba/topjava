@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -28,8 +29,6 @@ public class JdbcUserRepository implements UserRepository {
 
     private final SimpleJdbcInsert insertUser;
 
-    private final static Map<Integer, User> map = new HashMap<>();
-
     @Autowired
     public JdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.insertUser = new SimpleJdbcInsert(jdbcTemplate)
@@ -38,24 +37,6 @@ public class JdbcUserRepository implements UserRepository {
 
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-    }
-
-    private static Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt(1);
-        map.putIfAbsent(id, new User());
-        User user = map.get(id);
-        user.setId(rs.getInt(1));
-        user.setName(rs.getString(2));
-        user.setEmail(rs.getString(3));
-        user.setPassword(rs.getString(4));
-        user.setRegistered(rs.getDate(5));
-        user.setEnabled(rs.getBoolean(6));
-        user.setCaloriesPerDay(rs.getInt(7));
-        Role role = Role.valueOf(rs.getString(9));
-        Set<Role> roles = user.getRoles() == null ? new HashSet<>() : user.getRoles();
-        roles.add(role);
-        user.setRoles(roles);
-        return user;
     }
 
     @Override
@@ -70,6 +51,7 @@ public class JdbcUserRepository implements UserRepository {
         } else if (namedParameterJdbcTemplate.update(
                 "UPDATE users SET name=:name, email=:email, password=:password, " +
                         "registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id", parameterSource) != 0) {
+            jdbcTemplate.update("delete from user_roles where user_id=?", user.getId());
             setRoles(user);
         } else {
             return null;
@@ -80,7 +62,6 @@ public class JdbcUserRepository implements UserRepository {
     private void setRoles(User user) {
         List<Role> roles = new ArrayList<>(user.getRoles());
         int userId = user.getId();
-        jdbcTemplate.update("delete from user_roles where user_id=?", userId);
         jdbcTemplate.batchUpdate("insert into user_roles (user_id, role) values (?,?)",
                 new BatchPreparedStatementSetter() {
                     @Override
@@ -105,25 +86,56 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public User get(int id) {
-        map.clear();
+        UserRowMapper mapper = new UserRowMapper();
         jdbcTemplate.query("SELECT * FROM users u LEFT JOIN user_roles ur ON u.id = ur.user_id WHERE id=?",
-                JdbcUserRepository::mapRow, id);
-        return DataAccessUtils.singleResult(map.values());
+                mapper, id);
+        return DataAccessUtils.singleResult(mapper.getResult());
     }
 
     @Override
     public User getByEmail(String email) {
-        map.clear();
+        UserRowMapper mapper = new UserRowMapper();
         jdbcTemplate.query("SELECT * FROM users u LEFT JOIN user_roles ur ON u.id = ur.user_id WHERE email=?",
-                JdbcUserRepository::mapRow, email);
-        return DataAccessUtils.singleResult(map.values());
+                mapper, email);
+        return DataAccessUtils.singleResult(mapper.getResult());
     }
 
     @Override
     public List<User> getAll() {
-        map.clear();
+        UserRowMapper mapper = new UserRowMapper();
         jdbcTemplate.query("SELECT * FROM users u LEFT JOIN user_roles ur ON u.id = ur.user_id ORDER BY name, email",
-                JdbcUserRepository::mapRow);
-        return new ArrayList<>(map.values());
+                mapper);
+        return mapper.getResult();
+    }
+
+    private static final class UserRowMapper implements RowCallbackHandler {
+        private final Map<Integer, User> map = new HashMap<>();
+        private final List<User> result = new ArrayList<>();
+
+        @Override
+        public void processRow(ResultSet rs) throws SQLException {
+            int id = rs.getInt("id");
+            User user = map.computeIfAbsent(id, i -> new User());
+            if (user.isNew()) {
+                user.setId(id);
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRegistered(rs.getDate("registered"));
+                user.setEnabled(rs.getBoolean("enabled"));
+                user.setCaloriesPerDay(rs.getInt("calories_per_day"));
+            }
+            Role role = Role.valueOf(rs.getString("role"));
+            Set<Role> roles = user.getRoles() == null ? new HashSet<>() : user.getRoles();
+            roles.add(role);
+            user.setRoles(roles);
+            if (!result.contains(user)) {
+                result.add(user);
+            }
+        }
+
+        public List<User> getResult() {
+            return result;
+        }
     }
 }
