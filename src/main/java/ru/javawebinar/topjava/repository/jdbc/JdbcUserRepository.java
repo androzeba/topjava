@@ -118,6 +118,7 @@ public class JdbcUserRepository implements UserRepository {
             User user = map.computeIfAbsent(id, i -> new User());
             if (user.isNew()) {
                 user.setId(id);
+                user.setRoles(new HashSet<>());
                 user.setName(rs.getString("name"));
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
@@ -125,10 +126,13 @@ public class JdbcUserRepository implements UserRepository {
                 user.setEnabled(rs.getBoolean("enabled"));
                 user.setCaloriesPerDay(rs.getInt("calories_per_day"));
             }
-            Role role = Role.valueOf(rs.getString("role"));
-            Set<Role> roles = user.getRoles() == null ? new HashSet<>() : user.getRoles();
-            roles.add(role);
-            user.setRoles(roles);
+            String dbRole = rs.getString("role");
+            if (dbRole != null) {
+                Role role = Role.valueOf(dbRole);
+                Set<Role> roles = user.getRoles();
+                roles.add(role);
+                user.setRoles(roles);
+            }
             if (!result.contains(user)) {
                 result.add(user);
             }
