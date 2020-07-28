@@ -20,10 +20,22 @@ public class MealTestData {
     public static final int ADMIN_MEAL_ID = START_SEQ + 9;
 
     public static final String FILTER_PARAMETERS = "filter?"
-            + "startDate=" + LocalDateTime.of(2020, Month.JANUARY, 30, 0, 0, 0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            + "&startTime=" + LocalDateTime.of(2020, Month.JANUARY, 30, 0, 0, 0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            + "&endDate=" + LocalDateTime.of(2020, Month.JANUARY, 30, 23, 59, 59).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            + "&endTime=" + LocalDateTime.of(2020, Month.JANUARY, 30, 23, 59, 59).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            + "startDate=" + LocalDateTime.of(2020, Month.JANUARY, 30, 0, 0, 0).format(DateTimeFormatter.ISO_DATE)
+            + "&startTime=" + LocalDateTime.of(2020, Month.JANUARY, 30, 0, 0, 0).format(DateTimeFormatter.ISO_TIME)
+            + "&endDate=" + LocalDateTime.of(2020, Month.JANUARY, 30, 23, 59, 59).format(DateTimeFormatter.ISO_DATE)
+            + "&endTime=" + LocalDateTime.of(2020, Month.JANUARY, 30, 23, 59, 59).format(DateTimeFormatter.ISO_TIME);
+
+// public static final String FILTER_PARAMETERS = "filter?"
+//            + "startDate=" + "2020-01-30"
+//            + "&startTime=" + "00:00"
+//            + "&endDate=" + "2020-01-30"
+//            + "&endTime=" + "23:59";
+
+// public static final String FILTER_PARAMETERS = "filter?"
+//            + "startDate=" + "2020-01-30"
+//            + "&startTime="
+//            + "&endDate=" + "2020-01-30"
+//            + "&endTime=";
 
     public static final Meal MEAL1 = new Meal(MEAL1_ID, of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500);
     public static final Meal MEAL2 = new Meal(MEAL1_ID + 1, of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000);
