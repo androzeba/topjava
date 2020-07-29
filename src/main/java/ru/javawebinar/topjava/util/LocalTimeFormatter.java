@@ -10,10 +10,7 @@ public class LocalTimeFormatter implements Formatter<LocalTime> {
 
     @Override
     public LocalTime parse(String text, Locale locale) {
-        if (text.length() == 0) {
-            return null;
-        }
-        return LocalTime.parse(text, DateTimeFormatter.ISO_TIME);
+        return DateTimeUtil.parseLocalTime(text);
     }
 
     @Override

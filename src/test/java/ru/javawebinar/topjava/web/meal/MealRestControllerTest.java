@@ -8,8 +8,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
+import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
+import ru.javawebinar.topjava.web.SecurityUtil;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
 import java.util.List;
@@ -52,7 +54,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEALTO_MATCHER.contentJson(getTos(MEALS, 2000)));
+                .andExpect(MEALTO_MATCHER.contentJsonTo(getTos(MEALS, SecurityUtil.authUserCaloriesPerDay())));
     }
 
     @Test
@@ -82,10 +84,28 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void getBetween() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL + FILTER_PARAMETERS))
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDate", "2020-01-31")
+                .param("startTime", "08:00")
+                .param("endDate", "2020-01-31")
+                .param("endTime", "18:00"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEALTO_MATCHER.contentJson(getTos(List.of(MEAL3, MEAL2, MEAL1), 2000)));
+                .andExpect(MEALTO_MATCHER.contentJsonTo(List.of(createTo(MEAL6, true), createTo(MEAL5, true))));
+    }
+
+    @Test
+    void getBetweenWithNull() throws Exception {
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDate", ""))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MEALTO_MATCHER.contentJsonTo(getTos(MEALS, SecurityUtil.authUserCaloriesPerDay())));
+    }
+
+    private MealTo createTo(Meal meal, Boolean excess) {
+        return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
     }
 }
