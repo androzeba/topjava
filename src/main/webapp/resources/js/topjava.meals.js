@@ -1,6 +1,6 @@
 // $(document).ready(function () {
 
-$('#filterButton').click(function () {
+function filter() {
     let startDate, endDate, startTime, endTime;
     startDate = $('#startDate').val();
     endDate = $('#endDate').val();
@@ -12,9 +12,28 @@ $('#filterButton').click(function () {
         "&endDate=" + endDate +
         "&startTime=" + startTime +
         "&endTime=" + endTime;
-    updateTable();
-});
+    $.ajax({
+        url: context.ajaxUrl,
+        type: "GET"
+    }).done(function (data) {
+        context.datatableApi.clear().rows.add(data).draw();
+        context.ajaxUrl = "profile/meals/";
+    });
+}
 
+function clearFilter() {
+    context.ajaxUrl = "profile/meals";
+    $("#startDate").val("");
+    $("#endDate").val("");
+    $("#startTime").val("");
+    $("#endTime").val("");
+    $.ajax({
+        url: context.ajaxUrl,
+        type: "GET"
+    }).done(function (data) {
+        context.datatableApi.clear().rows.add(data).draw();
+    });
+}
 
 $(function () {
     makeEditable({
