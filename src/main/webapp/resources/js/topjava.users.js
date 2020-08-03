@@ -1,4 +1,5 @@
 // $(document).ready(function () {
+
 $(function () {
     makeEditable({
             ajaxUrl: "admin/users/",
@@ -40,3 +41,16 @@ $(function () {
         }
     );
 });
+
+function setUserStatus(elem) {
+    const id = $(elem).closest('tr').attr("id");
+    let enabled;
+    enabled = !!elem.checked;
+    $.ajax({
+        url: context.ajaxUrl + id,
+        type: "POST",
+        data: {enabled: enabled}
+    }).done(function () {
+        updateTable();
+    });
+}
