@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
@@ -39,14 +38,9 @@ public class AdminUIController extends AbstractUserController {
         }
     }
 
-    @Transactional
     @PostMapping(value = "/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void changeEnabled(@RequestParam boolean enabled, @PathVariable int id) {
-        User user = super.get(id);
-        user.setEnabled(enabled);
-        super.update(user, id);
+        super.changeEnabled(enabled, id);
     }
-
-
 }

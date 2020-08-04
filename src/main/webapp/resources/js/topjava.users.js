@@ -43,14 +43,41 @@ $(function () {
 });
 
 function setUserStatus(elem) {
-    const id = $(elem).closest('tr').attr("id");
+    const row = $(elem).closest('tr');
+    const id = row.attr("id");
     let enabled;
     enabled = !!elem.checked;
     $.ajax({
         url: context.ajaxUrl + id,
         type: "POST",
-        data: {enabled: enabled}
+        data: {enabled: enabled},
+        success: function () {
+            row.attr("data-enabled", enabled);
+        },
+        error: function () {
+            $(elem).attr("checked", !enabled);
+        }
+    });
+}
+
+function deleteRow(id) {
+    $.ajax({
+        url: context.ajaxUrl + id,
+        type: "DELETE"
     }).done(function () {
         updateTable();
+        successNoty("Deleted");
+    });
+}
+
+function save() {
+    $.ajax({
+        type: "POST",
+        url: context.ajaxUrl,
+        data: form.serialize()
+    }).done(function () {
+        $("#editRow").modal("hide");
+        updateTable();
+        successNoty("Saved");
     });
 }

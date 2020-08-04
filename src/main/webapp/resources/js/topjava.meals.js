@@ -1,20 +1,11 @@
 // $(document).ready(function () {
 
 function filter() {
-    let startDate, endDate, startTime, endTime;
-    startDate = $('#startDate').val();
-    endDate = $('#endDate').val();
-    startTime = $('#startTime').val();
-    endTime = $('#endTime').val();
-    // const url = "profile/meals";
-    context.ajaxUrl = "profile/meals/filter?" +
-        "startDate=" + startDate +
-        "&endDate=" + endDate +
-        "&startTime=" + startTime +
-        "&endTime=" + endTime;
+    context.ajaxUrl = "profile/meals/filter";
     $.ajax({
         url: context.ajaxUrl,
-        type: "GET"
+        type: "GET",
+        data: $("#filter").serialize()
     }).done(function (data) {
         context.datatableApi.clear().rows.add(data).draw();
         context.ajaxUrl = "profile/meals/";
@@ -22,16 +13,30 @@ function filter() {
 }
 
 function clearFilter() {
+    $("#filter")[0].reset();
     context.ajaxUrl = "profile/meals";
-    $("#startDate").val("");
-    $("#endDate").val("");
-    $("#startTime").val("");
-    $("#endTime").val("");
+    updateTable();
+}
+
+function deleteRow(id) {
     $.ajax({
+        url: context.ajaxUrl + id,
+        type: "DELETE"
+    }).done(function () {
+        filter();
+        successNoty("Deleted");
+    });
+}
+
+function save() {
+    $.ajax({
+        type: "POST",
         url: context.ajaxUrl,
-        type: "GET"
-    }).done(function (data) {
-        context.datatableApi.clear().rows.add(data).draw();
+        data: form.serialize()
+    }).done(function () {
+        $("#editRow").modal("hide");
+        filter();
+        successNoty("Saved");
     });
 }
 
@@ -63,7 +68,7 @@ $(function () {
                 "order": [
                     [
                         0,
-                        "asc"
+                        "desc"
                     ]
                 ]
             })

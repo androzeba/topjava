@@ -22,20 +22,6 @@ function add() {
     $("#editRow").modal();
 }
 
-function deleteRow(id) {
-    $.ajax({
-        url: context.ajaxUrl + id,
-        type: "DELETE"
-    }).done(function () {
-        if (context.ajaxUrl.indexOf('/users/') < 0) {
-            filter();
-        } else {
-            updateTable();
-        }
-        successNoty("Deleted");
-    });
-}
-
 function updateTable() {
     $.get(context.ajaxUrl, function (data) {
         context.datatableApi.clear().rows.add(data).draw();
