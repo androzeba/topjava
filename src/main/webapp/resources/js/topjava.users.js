@@ -43,9 +43,9 @@ $(function () {
 });
 
 function setUserStatus(elem) {
-    const row = $(elem).closest('tr');
-    const id = row.attr("id");
-    let enabled;
+    var row = $(elem).closest('tr');
+    var id = row.attr("id");
+    var enabled;
     enabled = !!elem.checked;
     $.ajax({
         url: context.ajaxUrl + id,
@@ -53,6 +53,7 @@ function setUserStatus(elem) {
         data: {enabled: enabled},
         success: function () {
             row.attr("data-enabled", enabled);
+            enabled ? successNoty("Enabled") : successNoty("Disabled");
         },
         error: function () {
             $(elem).attr("checked", !enabled);
@@ -60,24 +61,6 @@ function setUserStatus(elem) {
     });
 }
 
-function deleteRow(id) {
-    $.ajax({
-        url: context.ajaxUrl + id,
-        type: "DELETE"
-    }).done(function () {
-        updateTable();
-        successNoty("Deleted");
-    });
-}
-
-function save() {
-    $.ajax({
-        type: "POST",
-        url: context.ajaxUrl,
-        data: form.serialize()
-    }).done(function () {
-        $("#editRow").modal("hide");
-        updateTable();
-        successNoty("Saved");
-    });
+function updateCurrentTable() {
+    updateTable();
 }

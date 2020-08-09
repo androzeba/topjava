@@ -1,43 +1,22 @@
 // $(document).ready(function () {
 
 function filter() {
-    context.ajaxUrl = "profile/meals/filter";
     $.ajax({
-        url: context.ajaxUrl,
+        url: context.ajaxUrl + "filter",
         type: "GET",
         data: $("#filter").serialize()
     }).done(function (data) {
         context.datatableApi.clear().rows.add(data).draw();
-        context.ajaxUrl = "profile/meals/";
     });
 }
 
 function clearFilter() {
     $("#filter")[0].reset();
-    context.ajaxUrl = "profile/meals";
     updateTable();
 }
 
-function deleteRow(id) {
-    $.ajax({
-        url: context.ajaxUrl + id,
-        type: "DELETE"
-    }).done(function () {
-        filter();
-        successNoty("Deleted");
-    });
-}
-
-function save() {
-    $.ajax({
-        type: "POST",
-        url: context.ajaxUrl,
-        data: form.serialize()
-    }).done(function () {
-        $("#editRow").modal("hide");
-        filter();
-        successNoty("Saved");
-    });
+function updateCurrentTable() {
+    filter();
 }
 
 $(function () {

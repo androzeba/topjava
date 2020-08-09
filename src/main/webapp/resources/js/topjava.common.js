@@ -28,6 +28,16 @@ function updateTable() {
     });
 }
 
+function deleteRow(id) {
+    $.ajax({
+        url: context.ajaxUrl + id,
+        type: "DELETE"
+    }).done(function () {
+        updateCurrentTable();
+        successNoty("Deleted");
+    });
+}
+
 function save() {
     $.ajax({
         type: "POST",
@@ -35,11 +45,7 @@ function save() {
         data: form.serialize()
     }).done(function () {
         $("#editRow").modal("hide");
-        if (context.ajaxUrl.indexOf('/users/') < 0) {
-            filter();
-        } else {
-            updateTable();
-        }
+        updateCurrentTable();
         successNoty("Saved");
     });
 }
