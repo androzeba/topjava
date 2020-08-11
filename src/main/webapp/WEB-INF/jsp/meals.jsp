@@ -62,21 +62,6 @@
                 <th></th>
             </tr>
             </thead>
-            <c:forEach items="${meals}" var="meal">
-                <jsp:useBean id="meal" type="ru.javawebinar.topjava.to.MealTo"/>
-                <tr data-mealExcess="${meal.excess}">
-                    <td>
-                            <%--${meal.dateTime.toLocalDate()} ${meal.dateTime.toLocalTime()}--%>
-                            <%--<%=TimeUtil.toString(meal.getDateTime())%>--%>
-                            <%--${fn:replace(meal.dateTime, 'T', ' ')}--%>
-                            ${fn:formatDateTime(meal.dateTime)}
-                    </td>
-                    <td>${meal.description}</td>
-                    <td>${meal.calories}</td>
-                    <td><a onclick="updateRow(${meal.id})"><span class="fa fa-pencil"></span></a></td>
-                    <td><a onclick="deleteRow(${meal.id})"><span class="fa fa-remove"></span></a></td>
-                </tr>
-            </c:forEach>
         </table>
     </div>
 </div>
@@ -86,15 +71,19 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modalTitle"><spring:message code="meal.add"/></h4>
-                <button type="button" class="close" data-dismiss="modal" onclick="closeNoty()">&times;</button>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeNoty()">
+                    &times;
+                </button>
             </div>
             <div class="modal-body">
                 <form id="detailsForm">
                     <input type="hidden" id="id" name="id">
 
                     <div class="form-group">
-                        <label for="dateTime" class="col-form-label"><spring:message code="meal.dateTime"/></label>
-                        <input type="datetime-local" class="form-control" id="dateTime" name="dateTime"
+                        <label for="dateTime" class="col-form-label"><spring:message
+                                code="meal.dateTime"/></label>
+                        <input type="datetime-local" class="form-control" id="dateTime"
+                               name="dateTime"
                                placeholder="<spring:message code="meal.dateTime"/>">
                     </div>
 
@@ -106,13 +95,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="calories" class="col-form-label"><spring:message code="meal.calories"/></label>
-                        <input type="number" class="form-control" id="calories" name="calories" placeholder="1000">
+                        <label for="calories" class="col-form-label"><spring:message
+                                code="meal.calories"/></label>
+                        <input type="number" class="form-control" id="calories" name="calories"
+                               placeholder="1000">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeNoty()">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="closeNoty()">
                     <span class="fa fa-close"></span>
                     <spring:message code="common.cancel"/>
                 </button>
