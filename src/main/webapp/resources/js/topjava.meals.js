@@ -1,22 +1,24 @@
+var userAjaxUrl = "profile/meals/";
+
 function updateFilteredTable() {
     $.ajax({
         type: "GET",
-        url: "profile/meals/filter",
+        url: userAjaxUrl + "filter",
         data: $("#filter").serialize()
     }).done(updateTableByData);
 }
 
 function clearFilter() {
     $("#filter")[0].reset();
-    $.get("profile/meals/", updateTableByData);
+    $.get(userAjaxUrl, updateTableByData);
 }
 
 $(function () {
     makeEditable({
-        ajaxUrl: "profile/meals/",
+        ajaxUrl: userAjaxUrl,
         datatableApi: $("#datatable").DataTable({
             "ajax": {
-                "url": "profile/meals/",
+                "url": userAjaxUrl,
                 "dataSrc": ""
             },
             "paging": false,
@@ -26,7 +28,7 @@ $(function () {
                     "data": "dateTime",
                     "render": function (date, type, row) {
                         if (type === "display") {
-                            return date.replace('T', ' ');
+                            return date.replace('T', ' ').substring(0, 16);
                         }
                         return date;
                     }
@@ -59,7 +61,8 @@ $(function () {
             }
         }),
         updateTable: function () {
-            $.get("profile/meals/", updateFilteredTable);
+            updateFilteredTable();
+
         }
     });
 });
